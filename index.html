@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>量詞名詞搭配練習 - 隨機挑戰版</title>
+    <style>
+        :root {
+            --primary-color: #6c5ce7;
+            --bg-color: #f0f3ff;
+            --correct-color: #2ecc71;
+            --wrong-color: #e74c3c;
+            --whatsapp-green: #25d366;
+            --font-stack: "Yuanti SC", "YouYuan", "STYuanti-SC-Regular", "Microsoft JhengHei", sans-serif;
+        }
+
+        body, html {
+            margin: 0; padding: 0; height: 100%;
+            font-family: var(--font-stack);
+            background-color: var(--bg-color);
+            -webkit-tap-highlight-color: transparent;
+            overflow-x: hidden;
+        }
+
+        .header-title {
+            position: absolute; top: 15px; right: 20px;
+            font-size: 14px; color: #5d54a4; z-index: 100; font-weight: bold;
+        }
+
+        .screen {
+            position: fixed; inset: 0; background: var(--bg-color);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 20px; z-index: 1000;
+        }
+
+        .box {
+            background: #fff; padding: 30px; border-radius: 30px;
+            box-shadow: 0 20px 50px rgba(108, 92, 231, 0.15);
+            max-width: 350px; width: 100%; text-align: center;
+            border: 4px solid white;
+        }
+
+        input {
+            width: 100%; padding: 15px; margin: 12px 0;
+            border: 2px solid #e0e7ff; border-radius: 15px;
+            box-sizing: border-box; font-size: 16px; outline: none;
+        }
+
+        button {
+            background: var(--primary-color); color: white; border: none;
+            padding: 15px; border-radius: 50px; cursor: pointer;
+            font-size: 18px; font-weight: bold;
+            box-shadow: 0 6px 0 #5d54a4; transition: 0.1s;
+            width: 100%; margin-top: 10px;
+        }
+        button:active { transform: translateY(3px); box-shadow: 0 2px 0 #5d54a4; }
+
+        #quiz-screen { display: none; height: 100%; flex-direction: column; align-items: center; padding-top: 60px; box-sizing: border-box;}
+
+        .quiz-container {
+            background: white; width: 90%; max-width: 400px;
+            padding: 30px 20px; border-radius: 35px;
+            text-align: center; box-shadow: 0 15px 35px rgba(108, 92, 231, 0.1);
+            position: relative;
+        }
+
+        .question-word { font-size: 48px; font-weight: bold; color: #444; margin-bottom: 25px; }
+        .question-word span.bracket { color: var(--primary-color); border-bottom: 4px dashed #a29bfe; padding: 0 15px; margin-right: 10px;}
+
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; }
+        .option-btn {
+            background: #fdfdfd; border: 2px solid #e0e7ff;
+            padding: 15px; border-radius: 15px; font-size: 20px;
+            font-weight: bold; color: #5d54a4; cursor: pointer; transition: 0.2s;
+            box-shadow: 0 4px 0 #e0e7ff;
+        }
+        .option-btn.correct { background: var(--correct-color) !important; color: white !important; border-color: #27ae60 !important; box-shadow: 0 4px 0 #27ae60 !important; }
+        .option-btn.wrong { background: var(--wrong-color) !important; color: white !important; border-color: #c0392b !important; box-shadow: 0 4px 0 #c0392b !important; }
+
+        .progress-bar { width: 80%; height: 12px; background: #eee; border-radius: 10px; margin-bottom: 15px; overflow: hidden; }
+        #progress-fill { width: 0%; height: 100%; background: var(--primary-color); transition: 0.3s; }
+
+        .feedback-icon { font-size: 20px; margin-top: 20px; font-weight: bold; height: 30px; }
+        .whatsapp-btn { background: var(--whatsapp-green) !important; box-shadow: 0 6px 0 #128c7e !important; }
+    </style>
+</head>
+<body>
+
+<div class="header-title">量詞搭配練習</div>
+
+<audio id="audio-correct" src="https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3"></audio>
+<audio id="audio-wrong" src="https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3"></audio>
+
+<div id="login-screen" class="screen">
+    <div class="box">
+        <h2 style="color: var(--primary-color);">🎲 量詞搭配挑戰</h2>
+        <p style="font-size: 14px; color: #706fd3; margin-bottom: 20px;">量詞名詞搭配挑戰，準備好了嗎？</p>
+        <input type="text" id="username" placeholder="請輸入您的姓名">
+        <input type="password" id="password" placeholder="密碼 ">
+        <button onclick="startQuiz()">開始練習 🚀</button>
+    </div>
+</div>
+
+<div id="quiz-screen">
+    <div class="progress-bar"><div id="progress-fill"></div></div>
+    <div style="margin-bottom: 15px; color: #5d54a4; font-weight: bold; font-size: 18px;" id="quiz-progress-text">準備中...</div>
+    
+    <div class="quiz-container">
+        <div class="question-word">一<span class="bracket"> </span><span id="target-word">---</span></div>
+        <div class="options-grid" id="options-container"></div>
+        <div id="feedback" class="feedback-icon"></div>
+    </div>
+</div>
+
+<div id="summary-screen" class="screen" style="display: none;">
+    <div class="box">
+        <h2 style="color: var(--primary-color); font-size: 32px;">🎊 練習完成</h2>
+        <div id="result-stats" style="font-size: 18px; margin: 20px 0; line-height: 1.8; color: #444;"></div>
+        <button class="whatsapp-btn" onclick="shareToWhatsApp()">✅ 傳送打卡訊息</button>
+        <button style="background:#aaa; box-shadow:0 6px 0 #888; margin-top:15px;" onclick="location.reload()">重新挑戰</button>
+    </div>
+</div>
+
+<script>
+    const allOptionsPool = ["把", "本", "部", "場", "道", "支", "份", "臺", "架", "輛"];
+
+    // 題目資料：ans 改為陣列形式，支持多個正確答案
+    let wordData = [
+        { word: "菜刀", ans: ["把"] }, { word: "剪刀", ans: ["把"] }, { word: "寶劍", ans: ["把"] },
+        { word: "椅子", ans: ["把"] }, { word: "鑰匙", ans: ["把"] }, { word: "傘", ans: ["把"] },
+        { word: "茶壺", ans: ["把"] }, { word: "扇子", ans: ["把"] }, { word: "提琴", ans: ["把"] },
+        { word: "手槍", ans: ["支"] }, { word: "書", ans: ["本" ,"部"]}, { word: "字典", ans: ["本", "部"]] },
+        { word: "雜誌", ans: ["份", "本"] }, { word: "賬", ans: ["本"] }, { word: "著作", ans: ["本", "部"] },
+        { word: "電影", ans: ["部", "場"] }, { word: "電視劇", ans: ["部"] }, { word: "手機", ans: ["部"] },
+        { word: "攝像機", ans: ["架", "臺"] }, { word: "汽車", ans: ["輛"] }, { word: "雨", ans: ["場"] },
+        { word: "大風", ans: ["場"] }, { word: "病", ans: ["場"] }, { word: "官司", ans: ["場"] },
+        { word: "大戰", ans: ["場"] }, { word: "演出", ans: ["場"] }, { word: "話劇", ans: ["場", "臺"] },
+        { word: "比賽", ans: ["場"] }, { word: "考試", ans: ["場"] }, { word: "閃電", ans: ["道"] }
+    ];
+
+    let currentIdx = 0;
+    let score = 0;
+    let userName = "";
+    let isLocked = false;
+
+    // 洗牌演算法
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    }
+
+    function startQuiz() {
+        const pass = document.getElementById('password').value;
+        userName = document.getElementById('username').value;
+        if (!userName) { alert("請輸入姓名"); return; }
+        if (pass === "vtcpsc") {
+            shuffleArray(wordData); // 開始前先打亂題目順序
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('quiz-screen').style.display = 'flex';
+            showQuestion();
+        } else {
+            alert("密碼錯誤");
+        }
+    }
+
+    function showQuestion() {
+        isLocked = false;
+        const q = wordData[currentIdx];
+        document.getElementById('target-word').innerText = q.word;
+        document.getElementById('quiz-progress-text').innerText = `題目 ${currentIdx + 1} / ${wordData.length}`;
+        document.getElementById('progress-fill').style.width = `${((currentIdx + 1) / wordData.length) * 100}%`;
+        document.getElementById('feedback').innerText = "";
+        
+        const container = document.getElementById('options-container');
+        container.innerHTML = "";
+        
+        // 挑選選項：確保包含所有正確答案，並補足到 6 個選項
+        let options = [...q.ans]; 
+        while(options.length < 6) {
+            let randomOpt = allOptionsPool[Math.floor(Math.random() * allOptionsPool.length)];
+            if(!options.includes(randomOpt)) options.push(randomOpt);
+        }
+        options.sort(() => Math.random() - 0.5);
+
+        options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = opt;
+            btn.onclick = () => handleChoice(opt, btn);
+            container.appendChild(btn);
+        });
+    }
+
+    function handleChoice(choice, btn) {
+        if (isLocked) return;
+        isLocked = true;
+        
+        const q = wordData[currentIdx];
+        const feedback = document.getElementById('feedback');
+        const isCorrect = q.ans.includes(choice); // 檢查是否在正確清單中
+        
+        if (isCorrect) {
+            score++;
+            btn.classList.add('correct');
+            feedback.style.color = "#2ecc71";
+            feedback.innerText = "答對了！✨";
+            document.getElementById('audio-correct').play();
+        } else {
+            btn.classList.add('wrong');
+            feedback.style.color = "#e74c3c";
+            feedback.innerText = `正確答案：${q.ans.join(' 或 ')}`;
+            document.getElementById('audio-wrong').play();
+            // 標示所有可能的正確按鈕
+            Array.from(document.querySelectorAll('.option-btn')).forEach(b => {
+                if (q.ans.includes(b.innerText)) b.classList.add('correct');
+            });
+        }
+
+        setTimeout(() => {
+            if (currentIdx < wordData.length - 1) {
+                currentIdx++;
+                showQuestion();
+            } else {
+                showResult();
+            }
+        }, 1800);
+    }
+
+    function showResult() {
+        document.getElementById('quiz-screen').style.display = 'none';
+        document.getElementById('summary-screen').style.display = 'flex';
+        const rate = Math.round((score / wordData.length) * 100);
+        document.getElementById('result-stats').innerHTML = `
+            👤 學習者：${userName}<br>
+            🎯 答對題數：${score} / ${wordData.length}<br>
+            📈 準確率：${rate}%
+        `;
+    }
+
+    function shareToWhatsApp() {
+        const now = new Date();
+        const rate = Math.round((score / wordData.length) * 100);
+        const text = `【量詞搭配隨機挑戰】\n👤 姓名：${userName}\n📅 日期：${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()}\n🎯 成績：${score}/${wordData.length} (${rate}%)\n✅ 已完成隨機順序練習！`;
+        
+        navigator.clipboard.writeText(text).then(() => {
+            alert("成績已複製！");
+            window.location.href = `whatsapp://send?text=${encodeURIComponent(text)}`;
+        }).catch(() => {
+            window.location.href = `whatsapp://send?text=${encodeURIComponent(text)}`;
+        });
+    }
+</script>
+
+</body>
+</html>
